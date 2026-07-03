@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007BFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal-buttons {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-edit {
+            background-color: #17a2b8;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-edit:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Records</h2>
+
+    <div class="button-group">
+        <a href="index.html" class="btn">Add Student</a>
+        <button class="btn" onclick="loadStudents()">Refresh</button>
+
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading students...</p>
+    </div>
+
+    <table id="studentsTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+
+    <div id="emptyState" style="text-align: center; padding: 40px; display: none;">
+        <p style="font-size: 18px; color: #666;">No students found. <a href="index.html" style="color: #007BFF;">Add a new student</a></p>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <div class="modal-header">Edit Student</div>
+
+        <form id="editForm">
+            <div class="form-group">
+                <label for="editId">ID (Read-only)</label>
+                <input type="number" id="editId" name="id" readonly style="background-color: #e9ecef;">
+            </div>
+
+            <div class="form-group">
+                <label for="editName">Name</label>
+                <input type="text" id="editName" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editAddress">Address</label>
+                <textarea id="editAddress" name="Address" rows="4" required></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Load students when page loads
+    window.addEventListener('load', function() {
+        loadStudents();
+    });
+
+    function loadStudents() {
+        const loading = document.getElementById('loading');
+        const table = document.getElementById('studentsTable');
+        const emptyState = document.getElementById('emptyState');
+        const tableBody = document.getElementById('tableBody');
+
+        loading.style.display = 'block';
+        table.style.display = 'none';
+        emptyState.style.display = 'none';
+
+        fetch('/student/Detailes')
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+
+                if (data && data.length > 0) {
+                    tableBody.innerHTML = '';
+                    data.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.id}</td>
+                            <td>${student.name}</td>
+                            <td>${student.Address}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-edit" onclick="openEditModal(${student.id}, '${student.name}', '${student.Address}')">Edit</button>
+                                    <button class="btn btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    table.style.display = 'table';
+                } else {
+                    emptyState.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'Error loading students: ' + error.message;
+                messageDiv.classList.remove('success', 'info');
+                messageDiv.classList.add('error');
+            });
+    }
+
+    function deleteStudent(id) {
+        if (confirm('Are you sure you want to delete this student?')) {
+            fetch(`/student/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.text())
+            .then(data => {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = data;
+                messageDiv.classList.remove('error');
+                messageDiv.classList.add('success');
+                setTimeout(() => {
+                    loadStudents();
+                }, 1500);
+            })
+            .catch(error => {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'Error deleting student: ' + error.message;
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+            });
+        }
+    }
+
+    function openEditModal(id, name, address) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editAddress').value = address;
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Handle edit form submission
+    document.getElementById('editForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const id = document.getElementById('editId').value;
+        const name = document.getElementById('editName').value;
+        const address = document.getElementById('editAddress').value;
+
+        const studentData = {
+            id: parseInt(id),
+            name: name,
+            Address: address
+        };
+
+        fetch(`/student/update/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(studentData)
+        })
+        .then(response => response.text())
+        .then(data => {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = data;
+            messageDiv.classList.remove('error');
+            messageDiv.classList.add('success');
+            closeEditModal();
+            setTimeout(() => {
+                loadStudents();
+            }, 1500);
+        })
+        .catch(error => {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = 'Error updating student: ' + error.message;
+            messageDiv.classList.remove('success');
+            messageDiv.classList.add('error');
+        });
+    });
+
+    function downloadPdfReport() {
+        fetch('/student/report/pdf')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to download PDF');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'Student_Report_' + new Date().getTime() + '.pdf';
+                document.body.appendChild(link);
+                link.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'PDF Report downloaded successfully!';
+                messageDiv.classList.remove('error');
+                messageDiv.classList.add('success');
+            })
+            .catch(error => {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'Error downloading PDF: ' + error.message;
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+            });
+    }
+</script>
+
+</body>
+</html>
+
